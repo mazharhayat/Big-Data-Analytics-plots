@@ -1,0 +1,51 @@
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+file_path = "C:/Users/Mazhar Hayat/BDAssignment01/.idea/household_power_consumption.txt"
+
+
+if not os.path.exists(file_path):
+    print(f"Error: File '{file_path}' not found.")
+    exit()
+
+data = pd.read_csv(file_path, sep=";", parse_dates={'Date_Time': ['Date', 'Time']}, dayfirst=True)
+
+
+data_subset = data[(data['Date_Time'] >= '2007-02-01') & (data['Date_Time'] < '2007-02-03')]
+
+
+data_subset = data_subset.replace('?', pd.NA)
+data_subset = data_subset.dropna()
+
+
+data_subset['Day'] = data_subset['Date_Time'].dt.day_name()
+
+
+data_subset[['Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']] = \
+    data_subset[['Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']].apply(pd.to_numeric)
+
+
+submetering_means = data_subset.groupby('Day')[['Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']].mean()
+
+
+plt.figure(figsize=(10, 6))
+
+
+plt.plot(submetering_means.index, submetering_means['Sub_metering_1'], color='blue', label='Submetering 1')
+
+plt.plot(submetering_means.index, submetering_means['Sub_metering_2'], color='green', label='Submetering 2')
+
+
+plt.plot(submetering_means.index, submetering_means['Sub_metering_3'], color='red', label='Submetering 3')
+
+plt.xlabel('Day of the Week')
+plt.ylabel('Energy Submetering')
+plt.title('Energy Submetering by Day of the Week')
+plt.legend()
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.tight_layout()
+plt.savefig('plot3.png', dpi=100)
+plt.show()

@@ -1,0 +1,28 @@
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+file_path = "C:/Users/Mazhar Hayat/BDAssignment01/.idea/household_power_consumption.txt"
+
+
+if not os.path.exists(file_path):
+    print(f"Error: File '{file_path}' not found.")
+    exit()
+
+
+data = pd.read_csv(file_path, sep=";", parse_dates={'Date_Time': ['Date', 'Time']}, dayfirst=True, infer_datetime_format=True)
+
+
+data_subset = data[(data['Date_Time'] >= '2007-02-01') & (data['Date_Time'] < '2007-02-03')]
+
+
+plt.figure(figsize=(10, 6))
+plt.plot(data_subset['Date_Time'], data_subset['Global_active_power'], color='red')
+plt.title('Global Active Power for Date Range 2007-02-01 to 2007-02-02')
+plt.xlabel('Date')
+plt.ylabel('Global Active Power (kilowatts)')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('plot2.png', dpi=100)
+plt.show()

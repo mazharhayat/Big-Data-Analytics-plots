@@ -1,0 +1,75 @@
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+file_path = "C:/Users/Mazhar Hayat/BDAssignment01/.idea/household_power_consumption.txt"
+
+
+if not os.path.exists(file_path):
+    print(f"Error: File '{file_path}' not found.")
+    exit()
+
+
+dtype_spec = {'Global_active_power': str, 'Global_reactive_power': str,
+              'Voltage': str, 'Global_intensity': str,
+              'Sub_metering_1': str, 'Sub_metering_2': str, 'Sub_metering_3': str}
+
+
+try:
+    data = pd.read_csv(file_path, sep=';', parse_dates={'Date_Time': ['Date', 'Time']}, dayfirst=True, dtype=dtype_spec)
+except Exception as e:
+    print("Error occurred during CSV reading:", e)
+    exit()
+
+
+data = data.replace('?', pd.NA)
+data = data.dropna()
+
+
+numeric_columns = ['Global_active_power', 'Global_reactive_power', 'Voltage', 'Global_intensity',
+                   'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3']
+data[numeric_columns] = data[numeric_columns].apply(pd.to_numeric)
+
+
+data_subset = data[(data['Date_Time'] >= '2007-02-01') & (data['Date_Time'] < '2007-02-03')]
+
+
+data_subset['Day'] = data_subset['Date_Time'].dt.day_name()
+
+
+means_by_day = data_subset.groupby('Day').mean()
+
+fig, axs = plt.subplots(4, 1, figsize=(10, 20))
+
+
+axs[0].plot(means_by_day.index, means_by_day['Global_active_power'], color='blue')
+axs[0].set_ylabel('Global Active Power (kW)')
+axs[0].set_title('Global Active Power by Day')
+
+
+axs[1].plot(means_by_day.index, means_by_day['Voltage'], color='green')
+axs[1].set_ylabel('Voltage')
+axs[1].set_title('Voltage by Day')
+
+
+axs[2].plot(means_by_day.index, means_by_day['Sub_metering_1'], color='red', label='Submetering 1')
+axs[2].plot(means_by_day.index, means_by_day['Sub_metering_2'], color='blue', label='Submetering 2')
+axs[2].plot(means_by_day.index, means_by_day['Sub_metering_3'], color='green', label='Submetering 3')
+axs[2].set_ylabel('Energy Submetering')
+axs[2].set_title('Energy Submetering by Day')
+axs[2].legend()
+
+axs[3].plot(means_by_day.index, means_by_day['Global_reactive_power'], color='purple')
+axs[3].set_ylabel('Global Reactive Power')
+axs[3].set_title('Global Reactive Power by Day')
+
+for ax in axs:
+    ax.set_xlabel('Day of the Week')
+    ax.grid(True)
+
+plt.tight_layout()
+
+plt.savefig('plot_updated.png', dpi=100)
+
+plt.show()
